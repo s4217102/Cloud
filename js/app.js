@@ -13,6 +13,11 @@ function switchTab(name) {
   document.querySelectorAll(".tab-btn").forEach((b) => b.classList.toggle("active", b.dataset.tab === name));
   document.querySelectorAll(".tab-panel").forEach((p) => p.classList.toggle("active", p.id === "tab-" + name));
   document.getElementById("pageTitle").textContent = tabTitles[name];
+  if ("speechSynthesis" in window) window.speechSynthesis.cancel();
+  if (activeSpeakBtn) {
+    activeSpeakBtn.textContent = "🔊 Listen";
+    activeSpeakBtn = null;
+  }
 }
 
 // ---------- Settings: API key storage ----------
@@ -154,12 +159,7 @@ function applyAllFixes(originalText, matches) {
   textDiv.className = "result-text";
   textDiv.textContent = fixed;
   card.appendChild(textDiv);
-
-  const copyBtn = document.createElement("button");
-  copyBtn.className = "copy-btn";
-  copyBtn.textContent = "Copy";
-  copyBtn.addEventListener("click", () => copyToClipboard(fixed, copyBtn));
-  card.appendChild(copyBtn);
+  card.appendChild(buildResultActions(fixed));
 
   grammarResults.insertBefore(card, grammarResults.children[1]);
 }
@@ -257,14 +257,28 @@ function renderStyleResult(text) {
   textDiv.className = "result-text";
   textDiv.textContent = text;
   card.appendChild(textDiv);
-
-  const copyBtn = document.createElement("button");
-  copyBtn.className = "copy-btn";
-  copyBtn.textContent = "Copy";
-  copyBtn.addEventListener("click", () => copyToClipboard(text, copyBtn));
-  card.appendChild(copyBtn);
+  card.appendChild(buildResultActions(text));
 
   styleResult.appendChild(card);
+}
+
+function buildResultActions(text) {
+  const row = document.createElement("div");
+  row.className = "result-actions";
+
+  const listenBtn = document.createElement("button");
+  listenBtn.className = "text-btn";
+  listenBtn.textContent = "🔊 Listen";
+  listenBtn.addEventListener("click", () => speakText(text, listenBtn));
+  row.appendChild(listenBtn);
+
+  const copyBtn = document.createElement("button");
+  copyBtn.className = "text-btn";
+  copyBtn.textContent = "Copy";
+  copyBtn.addEventListener("click", () => copyToClipboard(text, copyBtn));
+  row.appendChild(copyBtn);
+
+  return row;
 }
 
 // ---------- Helpers ----------
@@ -281,6 +295,44 @@ function copyToClipboard(text, btn) {
     setTimeout(() => (btn.textContent = original), 1500);
   });
 }
+
+// ---------- Read aloud ----------
+let activeSpeakBtn = null;
+
+function speakText(text, btn) {
+  if (!("speechSynthesis" in window)) {
+    alert("Sorry, read-aloud isn't supported on this device.");
+    return;
+  }
+  if (!text) return;
+
+  const wasActive = activeSpeakBtn === btn;
+  window.speechSynthesis.cancel();
+  if (activeSpeakBtn) {
+    activeSpeakBtn.textContent = "🔊 Listen";
+    activeSpeakBtn = null;
+  }
+  if (wasActive) return; // tapping the same button again just stops it
+
+  const utterance = new SpeechSynthesisUtterance(text);
+  utterance.lang = "en-US";
+  utterance.onend = utterance.onerror = () => {
+    btn.textContent = "🔊 Listen";
+    if (activeSpeakBtn === btn) activeSpeakBtn = null;
+  };
+
+  btn.textContent = "⏹ Stop";
+  activeSpeakBtn = btn;
+  window.speechSynthesis.speak(utterance);
+}
+
+document.getElementById("grammarListenBtn").addEventListener("click", (e) => {
+  speakText(grammarInput.value.trim(), e.currentTarget);
+});
+
+document.getElementById("styleListenBtn").addEventListener("click", (e) => {
+  speakText(styleInput.value.trim(), e.currentTarget);
+});
 
 // ---------- Offline support ----------
 if ("serviceWorker" in navigator) {
