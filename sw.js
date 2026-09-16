@@ -1,4 +1,4 @@
-const CACHE_NAME = "writewell-v2";
+const CACHE_NAME = "writewell-v3";
 const ASSETS = [
   "./",
   "index.html",
@@ -30,9 +30,11 @@ self.addEventListener("fetch", (event) => {
   if (url.origin !== location.origin) return;
 
   // Network-first: always try to get the latest version, and only fall back
-  // to the cached copy when there's no internet connection.
+  // to the cached copy when there's no internet connection. "no-store" skips
+  // the browser's own HTTP cache, which otherwise ignores this logic entirely
+  // and serves a stale response without even asking the network.
   event.respondWith(
-    fetch(event.request)
+    fetch(event.request, { cache: "no-store" })
       .then((response) => {
         const copy = response.clone();
         caches.open(CACHE_NAME).then((cache) => cache.put(event.request, copy));
