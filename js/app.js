@@ -208,7 +208,7 @@ async function rewriteStyle() {
 
   const callGemini = () =>
     fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent?key=${encodeURIComponent(apiKey)}`,
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-lite-latest:generateContent?key=${encodeURIComponent(apiKey)}`,
       {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -222,10 +222,11 @@ async function rewriteStyle() {
     setStatus(styleStatus, "Rewriting...", "");
     let res = await callGemini();
 
-    // The model is sometimes temporarily overloaded (503) - wait a moment and retry once.
-    if (res.status === 503) {
+    // The model is sometimes temporarily overloaded/rate-limited (429/503) -
+    // wait a bit and retry a couple of times before giving up.
+    for (let attempt = 0; !res.ok && (res.status === 429 || res.status === 503) && attempt < 2; attempt++) {
       setStatus(styleStatus, "Model is busy, retrying...", "");
-      await new Promise((r) => setTimeout(r, 3000));
+      await new Promise((r) => setTimeout(r, 3000 * (attempt + 1)));
       res = await callGemini();
     }
 
