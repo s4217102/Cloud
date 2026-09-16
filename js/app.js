@@ -201,16 +201,14 @@ async function rewriteStyle() {
     return;
   }
 
-  setStatus(styleStatus, "Rewriting...", "");
-
   const prompt =
     "You rewrite text to match a requested mood or style while keeping the original meaning. " +
     "You also fix any grammar mistakes. Reply with ONLY the rewritten text - no explanations, no quotation marks, no extra commentary.\n\n" +
     `Mood/style: ${mood}\n\nText to rewrite:\n${text}`;
 
-  try {
-    const res = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${encodeURIComponent(apiKey)}`,
+  const callGemini = () =>
+    fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent?key=${encodeURIComponent(apiKey)}`,
       {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -219,6 +217,17 @@ async function rewriteStyle() {
         }),
       }
     );
+
+  try {
+    setStatus(styleStatus, "Rewriting...", "");
+    let res = await callGemini();
+
+    // The model is sometimes temporarily overloaded (503) - wait a moment and retry once.
+    if (res.status === 503) {
+      setStatus(styleStatus, "Model is busy, retrying...", "");
+      await new Promise((r) => setTimeout(r, 3000));
+      res = await callGemini();
+    }
 
     if (!res.ok) {
       const errBody = await res.json().catch(() => null);
