@@ -2,7 +2,7 @@
 
 A simple app for your iPhone that:
 1. **Fixes your grammar** (free, no setup)
-2. **Rewrites your text to match a mood/style** you pick (uses your own Claude API key)
+2. **Rewrites your text to match a mood/style** you pick (uses your own free Google Gemini API key)
 
 ## How to put it on your iPhone
 
@@ -22,7 +22,8 @@ A simple app for your iPhone that:
 
 - **Grammar tab**: paste your text, tap "Check Grammar," then tap "Fix All" to get a corrected version.
 - **Style tab**: paste your text, pick a mood (or type your own), tap "Rewrite."
-  - First time only: go to **Settings**, paste your Anthropic API key, tap Save. Get a key at console.anthropic.com. It's stored only on your phone.
+  - First time only: go to **Settings**, paste your Google Gemini API key, tap Save.
+  - Get a **free** key at aistudio.google.com → sign in with your Google account → "Get API key" → "Create API key." No credit card needed. It's stored only on your phone.
 - Tap **Copy** on any result to paste it wherever you need.
 
 That's it — no App Store, no install, just a link.

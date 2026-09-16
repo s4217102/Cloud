@@ -196,36 +196,29 @@ async function rewriteStyle() {
 
   const apiKey = getApiKey();
   if (!apiKey) {
-    setStatus(styleStatus, "Add your Anthropic API key in Settings first.", "error");
+    setStatus(styleStatus, "Add your free Google Gemini API key in Settings first.", "error");
     switchTab("settings");
     return;
   }
 
   setStatus(styleStatus, "Rewriting...", "");
 
+  const prompt =
+    "You rewrite text to match a requested mood or style while keeping the original meaning. " +
+    "You also fix any grammar mistakes. Reply with ONLY the rewritten text - no explanations, no quotation marks, no extra commentary.\n\n" +
+    `Mood/style: ${mood}\n\nText to rewrite:\n${text}`;
+
   try {
-    const res = await fetch("https://api.anthropic.com/v1/messages", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "x-api-key": apiKey,
-        "anthropic-version": "2023-06-01",
-        "anthropic-dangerous-direct-browser-access": "true",
-      },
-      body: JSON.stringify({
-        model: "claude-sonnet-5",
-        max_tokens: 1024,
-        system:
-          "You rewrite text to match a requested mood or style while keeping the original meaning. " +
-          "You also fix any grammar mistakes. Reply with ONLY the rewritten text - no explanations, no quotation marks, no extra commentary.",
-        messages: [
-          {
-            role: "user",
-            content: `Mood/style: ${mood}\n\nText to rewrite:\n${text}`,
-          },
-        ],
-      }),
-    });
+    const res = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${encodeURIComponent(apiKey)}`,
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          contents: [{ parts: [{ text: prompt }] }],
+        }),
+      }
+    );
 
     if (!res.ok) {
       const errBody = await res.json().catch(() => null);
@@ -234,7 +227,10 @@ async function rewriteStyle() {
     }
 
     const data = await res.json();
-    const rewritten = (data.content || []).map((block) => block.text || "").join("").trim();
+    const rewritten = ((data.candidates || [])[0]?.content?.parts || [])
+      .map((part) => part.text || "")
+      .join("")
+      .trim();
 
     renderStyleResult(rewritten);
     setStatus(styleStatus, "", "");
