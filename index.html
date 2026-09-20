@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>My Gym Log</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <header class="app-header">
+    <h1>💪 My Gym Log</h1>
+    <p class="subtitle">Track your workouts, see your progress</p>
+  </header>
+
+  <section class="stats-row" id="statsRow">
+    <div class="stat-tile">
+      <div class="stat-value" id="statTotalSessions">0</div>
+      <div class="stat-label">Sessions logged</div>
+    </div>
+    <div class="stat-tile">
+      <div class="stat-value" id="statThisWeek">0</div>
+      <div class="stat-label">This week</div>
+    </div>
+    <div class="stat-tile">
+      <div class="stat-value" id="statExercises">0</div>
+      <div class="stat-label">Exercises tracked</div>
+    </div>
+  </section>
+
+  <nav class="tabs">
+    <button class="tab-btn active" data-tab="logTab">Log Workout</button>
+    <button class="tab-btn" data-tab="historyTab">History</button>
+    <button class="tab-btn" data-tab="progressTab">Progress</button>
+  </nav>
+
+  <main>
+    <!-- Add entry -->
+    <section id="logTab" class="tab-panel active">
+      <button type="button" id="quickLogBtn" class="quick-log-btn">⚡ Quick log: Stairmaster · 60 min today</button>
+
+      <form id="entryForm" class="entry-form">
+        <div class="field">
+          <label for="date">Date</label>
+          <input type="date" id="date" required>
+        </div>
+
+        <div class="field">
+          <label>Type</label>
+          <div class="type-toggle">
+            <button type="button" class="type-btn active" data-type="cardio">🏃 Cardio</button>
+            <button type="button" class="type-btn" data-type="strength">🏋️ Strength</button>
+          </div>
+          <input type="hidden" id="activityType" value="cardio">
+        </div>
+
+        <div class="field">
+          <label for="exercise">Exercise / Activity</label>
+          <input type="text" id="exercise" list="exerciseList" placeholder="e.g. Stairmaster" required>
+          <datalist id="exerciseList"></datalist>
+        </div>
+
+        <div class="field-row cardio-fields">
+          <div class="field">
+            <label for="duration">Duration (min)</label>
+            <input type="number" id="duration" min="1" step="1" value="60">
+          </div>
+        </div>
+
+        <div class="field-row strength-fields" style="display:none;">
+          <div class="field">
+            <label for="sets">Sets</label>
+            <input type="number" id="sets" min="1" step="1" value="3">
+          </div>
+          <div class="field">
+            <label for="reps">Reps</label>
+            <input type="number" id="reps" min="1" step="1" value="10">
+          </div>
+          <div class="field">
+            <label for="weight">Weight (kg)</label>
+            <input type="number" id="weight" min="0" step="0.5" value="0">
+          </div>
+        </div>
+
+        <div class="field">
+          <label for="notes">Notes (optional)</label>
+          <input type="text" id="notes" placeholder="e.g. felt strong today">
+        </div>
+        <button type="submit" class="primary-btn">Add Entry</button>
+      </form>
+    </section>
+
+    <!-- History -->
+    <section id="historyTab" class="tab-panel">
+      <div id="historyList" class="history-list"></div>
+      <p id="emptyHistory" class="empty-msg" style="display:none;">No workouts logged yet. Add your first one in the Log tab!</p>
+    </section>
+
+    <!-- Progress -->
+    <section id="progressTab" class="tab-panel">
+      <div class="field">
+        <label for="progressExercise">Exercise</label>
+        <select id="progressExercise"></select>
+      </div>
+      <div class="chart-card">
+        <h3 id="chartTitle">Weight over time</h3>
+        <svg id="progressChart" viewBox="0 0 600 300" preserveAspectRatio="xMidYMid meet"></svg>
+        <div id="chartTooltip" class="chart-tooltip" style="display:none;"></div>
+      </div>
+      <table class="progress-table" id="progressTable">
+        <thead>
+          <tr id="progressTableHead"><th>Date</th><th>Duration</th></tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+      <p id="emptyProgress" class="empty-msg" style="display:none;">Log a few sessions for an exercise to see progress here.</p>
+    </section>
+  </main>
+
+  <script src="app.js"></script>
+</body>
+</html>
