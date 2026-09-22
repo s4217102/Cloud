@@ -66,11 +66,26 @@
 
   /* ---------- Search ---------- */
   .search { margin-top: 20px; display: flex; gap: 8px; }
+  .field { position: relative; flex: 1; min-width: 0; }
+  .suggestions {
+    position: absolute; z-index: 5; left: 0; right: 0; top: calc(100% + 6px); margin: 0; padding: 6px;
+    list-style: none; background: var(--surface); border: 1px solid var(--line); border-radius: 12px;
+    box-shadow: 0 8px 24px rgba(15, 23, 42, 0.14);
+  }
+  .suggestions button {
+    width: 100%; border: 0; background: transparent; border-radius: 8px; padding: 8px 10px;
+    display: flex; align-items: baseline; gap: 8px; text-align: left;
+  }
+  .suggestions button:hover, .suggestions button.on { background: var(--ground); }
+  .suggestions .flag { font-size: 11px; font-weight: 700; letter-spacing: 0.06em; border-radius: 4px; padding: 1px 5px; }
+  .suggestions .flag.en { background: var(--en-soft); color: var(--en); }
+  .suggestions .flag.fr { background: var(--fr-soft); color: var(--fr); }
+  .suggestions small { color: var(--muted); margin-left: auto; text-align: right; }
   .search input {
-    flex: 1; min-width: 0; font: inherit; font-size: 18px; color: var(--ink);
+    width: 100%; min-width: 0; font: inherit; font-size: 18px; color: var(--ink);
     background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 12px 16px;
   }
-  .search button { border: 0; border-radius: 12px; padding: 0 20px; background: var(--ink); color: var(--ground); font-weight: 600; }
+  .search > button { border: 0; border-radius: 12px; padding: 0 20px; background: var(--ink); color: var(--ground); font-weight: 600; }
   .options { margin-top: 10px; display: flex; flex-wrap: wrap; gap: 16px; color: var(--muted); font-size: 14px; }
   .options label { display: flex; align-items: center; gap: 6px; cursor: pointer; }
   .message { margin: 12px 0 0; padding: 10px 14px; border-radius: 10px; background: var(--note); color: var(--note-ink); font-size: 15px; }
@@ -86,6 +101,9 @@
   .arrow { color: var(--muted); font-size: 24px; }
   .translation { font-family: "Literata", Georgia, serif; font-weight: 500; font-size: clamp(24px, 5vw, 32px); line-height: 1.15; overflow-wrap: anywhere; }
   .type { font-size: 13px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); border: 1px solid var(--line); border-radius: 6px; padding: 2px 8px; align-self: center; }
+
+  .type.added { color: var(--en); border-color: var(--en); text-transform: none; letter-spacing: 0; }
+  .search > button:disabled { opacity: 0.6; cursor: wait; }
 
   .meaning { background: var(--note); color: var(--note-ink); border-radius: 12px; padding: 14px 16px; }
   .label { display: block; font-size: 12px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 4px; opacity: 0.85; }
@@ -155,7 +173,10 @@
   </header>
 
   <form class="search" id="searchForm">
-    <input id="searchInput" type="search" autocomplete="off" placeholder="Type a word…" aria-label="Search a word">
+    <div class="field">
+      <input id="searchInput" type="search" autocomplete="off" spellcheck="false" placeholder="Type any word…" aria-label="Search a word" aria-controls="suggestions">
+      <ul id="suggestions" class="suggestions" hidden></ul>
+    </div>
     <button type="submit">Search</button>
   </form>
   <div class="options">
@@ -452,6 +473,13 @@ const WORDS = [
     meaning: "Many times; often.",
     synEn: ["often", "regularly", "a lot"], synFr: ["souvent", "régulièrement", "couramment"],
     exEn: "She frequently visits her grandmother.", exFr: "Elle rend fréquemment visite à sa grand-mère." },
+
+  { en: "confabulation", fr: "affabulation", type: "noun",
+    enIpa: "/kənˌfæb.jəˈleɪ.ʃən/", enSay: "kun-fab-yuh-LAY-shun", frIpa: "/a.fa.by.la.sjɔ̃/", frSay: "a-fa-bü-la-SYOHN",
+    simpleEn: "made-up story", simpleFr: "histoire inventée",
+    meaning: "A story that is not true, told as if it were true. Sometimes the person really believes it.",
+    synEn: ["fabrication", "fiction", "tall tale"], synFr: ["invention", "fabulation", "mensonge"],
+    exEn: "His story about meeting the king was pure confabulation.", exFr: "Son histoire de rencontre avec le roi était une pure affabulation." },
 ];
 
 /* =========================================================
@@ -575,6 +603,7 @@ function drawEntry(w) {
       <span class="arrow" aria-hidden="true">→</span>
       <span class="translation">${esc(w[to])}</span>
       <span class="type">${esc(w.type)}</span>
+      ${w.added ? '<span class="type added">Added by Claude</span>' : ""}
     </div>
     <div class="meaning">
       <span class="label">Simple English meaning</span>
@@ -590,8 +619,9 @@ function drawEntry(w) {
 
 function drawList(query) {
   const q = clean(query || "");
+  const close = suggestionsFor(q).map((s) => s.w); // also show close spellings
   const words = WORDS
-    .filter((w) => !q || clean(w[from]).includes(q) || clean(w[other(from)]).includes(q))
+    .filter((w) => !q || clean(w[from]).includes(q) || clean(w[other(from)]).includes(q) || close.includes(w))
     .sort((a, b) => a[from].localeCompare(b[from], from));
 
   if (!words.length) {
@@ -607,7 +637,7 @@ function drawList(query) {
 /* =========================================================
    6. SEARCH
    ========================================================= */
-function search(text) {
+async function search(text) {
   const q = clean(text);
   if (!q) return;
   showMessage("");
@@ -621,11 +651,22 @@ function search(text) {
     setDirection(other(from));
     showMessage(`"${text}" is a ${NAMES[from]} word, so I switched to ${NAMES[from]} → ${NAMES[other(from)]}.`);
   }
+  if (found) { drawEntry(found); return; }
 
-  // 3) Start of a word, or a simpler/similar word (e.g. "big" finds "enormous")
-  if (!found) {
-    found = WORDS.find((w) => clean(w[from]).startsWith(q));
+  // 3) Spelled a bit wrong? ("enormus" -> "enormous")
+  const close = closestWord(q);
+  if (close) {
+    if (close.lang !== from) setDirection(close.lang);
+    showMessage(`Did you mean "${close.w[close.lang]}"? Here it is.`);
+    drawEntry(close.w);
+    return;
   }
+
+  // 4) Not in the list: ask Claude to write the entry (only works in the published app)
+  if (askClaude && await lookUpWithClaude(text.trim())) return;
+
+  // 5) No Claude: try the start of a word, or a simpler/similar word ("big" finds "enormous")
+  found = WORDS.find((w) => clean(w[from]).startsWith(q));
   if (!found) {
     const key = from === "en" ? ["simpleEn", "synEn"] : ["simpleFr", "synFr"];
     found = WORDS.find((w) => clean(w[key[0]]).includes(q) || w[key[1]].some((s) => clean(s) === q));
@@ -634,10 +675,182 @@ function search(text) {
 
   if (found) {
     drawEntry(found);
-  } else {
+  } else if (!$("message").textContent) {
     showMessage(`"${text}" is not in the dictionary yet. Pick a word from the list, or add it to WORDS in the code.`);
   }
 }
+
+/* =========================================================
+   6a. SPELLING HELP
+   "How many letters must change to turn one word into the other?"
+   enormus -> enormous = 1 change, so it is a close spelling.
+   ========================================================= */
+function changesBetween(a, b) {
+  let prev = Array.from({ length: b.length + 1 }, (_, i) => i);
+  for (let i = 1; i <= a.length; i++) {
+    const row = [i];
+    for (let j = 1; j <= b.length; j++) {
+      row[j] = Math.min(prev[j] + 1, row[j - 1] + 1, prev[j - 1] + (a[i - 1] === b[j - 1] ? 0 : 1));
+    }
+    prev = row;
+  }
+  return prev[b.length];
+}
+
+// How many mistakes we allow: none for short words, more for long words
+const allowed = (q) => (q.length < 4 ? 0 : q.length < 8 ? 1 : 2);
+
+// Best close spelling for a whole word, in either language
+function closestWord(q) {
+  let best = null;
+  WORDS.forEach((w) => ["en", "fr"].forEach((lang) => {
+    const d = changesBetween(q, clean(w[lang]));
+    const score = d + (lang === from ? 0 : 0.5); // prefer the language you type in
+    if (d <= allowed(q) && (!best || score < best.score)) best = { w, lang, score };
+  }));
+  return best;
+}
+
+// Words to suggest while typing (start of the word, or nearly)
+function suggestionsFor(text) {
+  const q = clean(text);
+  if (!q) return [];
+  const found = [];
+  WORDS.forEach((w) => ["en", "fr"].forEach((lang) => {
+    const word = clean(w[lang]);
+    let score = null;
+    if (word.startsWith(q)) score = 0;                                              // typed the start
+    else if (q.length >= 3 && changesBetween(q, word.slice(0, q.length)) <= 1) score = 1; // small typo
+    else if (changesBetween(q, word) <= allowed(q)) score = 1;                      // whole word, small typo
+    if (score !== null) found.push({ w, lang, score: score + (lang === from ? 0 : 0.5) });
+  }));
+  return found.sort((a, b) => a.score - b.score || a.w[a.lang].localeCompare(b.w[b.lang])).slice(0, 6);
+}
+
+let shown = [];     // suggestions on screen
+let picked = -1;    // which one the arrow keys point at
+
+function drawSuggestions(text) {
+  shown = suggestionsFor(text);
+  picked = -1;
+  $("suggestions").innerHTML = shown.map((s, i) => `
+    <li><button type="button" data-pick="${i}">
+      <span class="flag ${s.lang}">${s.lang.toUpperCase()}</span>
+      <span>${esc(s.w[s.lang])}</span>
+      <small>${esc(s.w[other(s.lang)])}</small>
+    </button></li>`).join("");
+  $("suggestions").hidden = shown.length === 0;
+}
+
+function hideSuggestions() { $("suggestions").hidden = true; picked = -1; }
+
+function openSuggestion(i) {
+  const s = shown[i];
+  if (!s) return;
+  if (s.lang !== from) setDirection(s.lang);
+  $("searchInput").value = s.w[s.lang];
+  hideSuggestions();
+  showMessage("");
+  drawEntry(s.w);
+}
+
+/* =========================================================
+   6b. LOOK UP NEW WORDS WITH CLAUDE
+   Works when the app is opened on claude.ai. New words are
+   saved on this device so they are there next time.
+   ========================================================= */
+let askClaude = null;
+if (window.claude && window.claude.use) {
+  window.claude.use("sample").then((fn) => { askClaude = fn; }).catch(() => {});
+}
+
+function makePrompt(word) {
+  return `You are a friendly English–French dictionary for language learners.
+The learner typed: "${word}" (they are searching in ${NAMES[from]}, but the word may be ${NAMES[other(from)]}).
+
+Reply with ONLY one JSON object, no other text, in exactly this shape:
+{"found": true,
+ "lang": "en" or "fr" (the language of the typed word),
+ "en": "the English word", "fr": "the French translation",
+ "type": "noun" | "verb" | "adjective" | "adverb" | "phrase" | ...,
+ "enIpa": "/IPA/", "enSay": "easy sound-it-out spelling with the stressed part in CAPITALS, like ih-NOR-mus",
+ "frIpa": "/IPA/", "frSay": "sound-it-out spelling for English speakers, like ay-NORM",
+ "simpleEn": "a simpler everyday English word or short phrase",
+ "simpleFr": "a simpler everyday French word or short phrase",
+ "meaning": "one or two short sentences in very simple English (easy for a beginner)",
+ "synEn": ["three", "similar", "English words"], "synFr": ["three", "similar", "French words"],
+ "exEn": "a short, natural English example sentence using the word",
+ "exFr": "the French translation of that example, using the French word"}
+
+Use lowercase for the words unless they are names. Fix small spelling mistakes in what the learner typed.
+If it is not a real English or French word, reply {"found": false, "suggestion": "the closest real word, or empty"}.`;
+}
+
+// Check Claude's answer has everything the page needs
+function toEntry(data) {
+  const str = (v) => (typeof v === "string" ? v.trim() : "");
+  const list = (v) => (Array.isArray(v) ? v.map(str).filter(Boolean).slice(0, 5) : []);
+  const w = {
+    en: str(data.en), fr: str(data.fr), type: str(data.type) || "word",
+    enIpa: str(data.enIpa), enSay: str(data.enSay), frIpa: str(data.frIpa), frSay: str(data.frSay),
+    simpleEn: str(data.simpleEn), simpleFr: str(data.simpleFr), meaning: str(data.meaning),
+    synEn: list(data.synEn), synFr: list(data.synFr), exEn: str(data.exEn), exFr: str(data.exFr),
+    added: true,
+  };
+  return w.en && w.fr && w.meaning ? w : null;
+}
+
+// Returns true when it showed something (an entry or a clear message)
+async function lookUpWithClaude(word) {
+  const btn = $("searchForm").querySelector("button");
+  btn.disabled = true;
+  showMessage(`"${word}" is not in the list yet — asking Claude to look it up… (this can take a few seconds)`);
+  try {
+    const data = await askClaude.json(makePrompt(word), { cache: { gcTime: 86400000 } });
+    if (!data || data.found === false) {
+      const tip = data && data.suggestion ? ` Did you mean "${data.suggestion}"?` : "";
+      showMessage(`I couldn't find "${word}" as an English or French word.${tip}`);
+      return true;
+    }
+    const entry = toEntry(data);
+    if (!entry) { showMessage(`Claude's answer for "${word}" was incomplete. Please try again.`); return true; }
+
+    // Already in the list under its correct spelling? Just open that one.
+    const lang = data.lang === "fr" ? "fr" : "en";
+    const existing = findExact(entry[lang], lang) || findExact(entry.en, "en");
+    const w = existing || entry;
+    if (!existing) { WORDS.push(entry); saveAdded(); }
+    if (lang !== from) setDirection(lang);
+    const fixed = clean(entry[lang]) !== clean(word) ? `Did you mean "${entry[lang]}"? ` : "";
+    showMessage(fixed + (existing ? "Here it is." : `New word added: "${entry[lang]}". It is saved on this device.`));
+    drawEntry(w);
+    return true;
+  } catch (e) {
+    const code = e && e.code;
+    if (["not_granted", "sampling_disabled", "not_declared", "capability_disabled", "capability_removed"].includes(code)) {
+      askClaude = null; // looking up new words is turned off here; use the built-in list
+      return false;
+    }
+    if (code === "rate_limited") showMessage("Too many look-ups right now. Please wait a minute and try again.");
+    else if (code === "session_expired") showMessage("Please sign in to Claude again, then search again.");
+    else showMessage(`The look-up for "${word}" didn't work. Please try again.`);
+    return true;
+  } finally {
+    btn.disabled = false;
+  }
+}
+
+// Keep words Claude added on this device
+function saveAdded() {
+  save("motamot-added", JSON.stringify(WORDS.filter((w) => w.added)));
+}
+try {
+  const saved = JSON.parse(load("motamot-added", "[]"));
+  saved.forEach((d) => {
+    const w = toEntry(d);
+    if (w && !findExact(w.en, "en")) WORDS.push(w);
+  });
+} catch (e) { /* ignore broken saved data */ }
 
 function setDirection(lang) {
   from = lang;
@@ -650,10 +863,30 @@ function setDirection(lang) {
    ========================================================= */
 $("searchForm").addEventListener("submit", (e) => {
   e.preventDefault();
+  hideSuggestions();
   search($("searchInput").value);
 });
 
-$("searchInput").addEventListener("input", (e) => drawList(e.target.value));
+$("searchInput").addEventListener("input", (e) => {
+  drawList(e.target.value);
+  drawSuggestions(e.target.value);
+});
+
+// Arrow keys move through suggestions, Enter opens one, Escape closes them
+$("searchInput").addEventListener("keydown", (e) => {
+  if ($("suggestions").hidden) return;
+  const buttons = $("suggestions").querySelectorAll("button");
+  if (e.key === "ArrowDown" || e.key === "ArrowUp") {
+    e.preventDefault();
+    picked = (picked + (e.key === "ArrowDown" ? 1 : -1) + buttons.length) % buttons.length;
+    buttons.forEach((b, i) => b.classList.toggle("on", i === picked));
+  } else if (e.key === "Enter" && picked >= 0) {
+    e.preventDefault();
+    openSuggestion(picked);
+  } else if (e.key === "Escape") {
+    hideSuggestions();
+  }
+});
 
 $("swapBtn").addEventListener("click", () => {
   setDirection(other(from));
@@ -663,6 +896,10 @@ $("swapBtn").addEventListener("click", () => {
 
 // One listener for all buttons inside the page
 document.addEventListener("click", (e) => {
+  const pick = e.target.closest("[data-pick]");
+  if (pick) { openSuggestion(Number(pick.dataset.pick)); return; }
+  if (!e.target.closest(".field")) hideSuggestions();
+
   const speakBtn = e.target.closest(".speak");
   if (speakBtn) { speak(speakBtn.dataset.say, speakBtn.dataset.lang); return; }
 

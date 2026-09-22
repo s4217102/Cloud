@@ -10,6 +10,8 @@ A small dictionary app. Open `index.html` in your browser to use it. No install 
 - **Similar words** (synonyms) in both languages
 - **Example sentence** in both languages, which you can also listen to
 - You can search without accents (`epuise` finds `épuisé`)
+- **Spelling help**: suggestions appear while you type, and small spelling mistakes are fixed (`enormus` → `enormous`)
+- **Any word**: when a word is not in the list, the app asks Claude to write the entry. This works in the published app on claude.ai. New words are saved on your device. When you open `index.html` straight from your computer, only the built-in words work.
 
 ## Add a new word
 Open `index.html`, find `const WORDS = [` and copy one block, for example:
