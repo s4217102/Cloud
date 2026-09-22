@@ -1,0 +1,697 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Mot à Mot Dictionary</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Literata:opsz,wght@7..72,500;7..72,700&family=Figtree:wght@400;500;600;700&family=Charis+SIL:wght@400&display=swap">
+<style>
+  /* ---------- Colours (light + dark) ---------- */
+  :root {
+    --ground: #EEF1F6;
+    --surface: #FFFFFF;
+    --ink: #172033;
+    --muted: #5B6478;
+    --line: #D7DCE6;
+    --en: #2745C9;       /* English = blue */
+    --en-soft: #E4E9FB;
+    --fr: #C8324C;       /* French = red */
+    --fr-soft: #FBE6EA;
+    --note: #FFF6D9;
+    --note-ink: #5C4A10;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      color-scheme: dark;
+      --ground: #0E121A; --surface: #161C28; --ink: #E4E8F1; --muted: #97A0B4; --line: #283044;
+      --en: #8EA4FF; --en-soft: #1D2748; --fr: #FF8FA2; --fr-soft: #3A1C25;
+      --note: #2C2714; --note-ink: #EADCA6;
+    }
+  }
+  :root[data-theme="dark"] {
+    color-scheme: dark;
+    --ground: #0E121A; --surface: #161C28; --ink: #E4E8F1; --muted: #97A0B4; --line: #283044;
+    --en: #8EA4FF; --en-soft: #1D2748; --fr: #FF8FA2; --fr-soft: #3A1C25;
+    --note: #2C2714; --note-ink: #EADCA6;
+  }
+
+  /* ---------- Base ---------- */
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--ground);
+    color: var(--ink);
+    font: 16px/1.55 "Figtree", system-ui, -apple-system, "Segoe UI", sans-serif;
+  }
+  .wrap { max-width: 1000px; margin: 0 auto; padding-inline: 16px; padding-block: 20px 48px; }
+  button { font: inherit; color: inherit; cursor: pointer; }
+  button:focus-visible, input:focus-visible { outline: 3px solid var(--en); outline-offset: 2px; }
+  .ipa { font-family: "Charis SIL", "Doulos SIL", "Gentium Plus", "Lucida Sans Unicode", serif; }
+
+  /* ---------- Header ---------- */
+  header { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; }
+  .brand { font-family: "Literata", Georgia, serif; font-weight: 700; font-size: 26px; margin: 0; letter-spacing: -0.01em; }
+  .brand span { color: var(--fr); }
+  .brand em { font-style: normal; color: var(--en); }
+  .tagline { margin: 2px 0 0; color: var(--muted); font-size: 14px; }
+
+  .direction { display: flex; align-items: center; gap: 8px; background: var(--surface); border: 1px solid var(--line); border-radius: 999px; padding: 4px; }
+  .lang-tag { padding: 6px 12px; border-radius: 999px; font-weight: 600; font-size: 14px; }
+  .lang-tag.en { background: var(--en-soft); color: var(--en); }
+  .lang-tag.fr { background: var(--fr-soft); color: var(--fr); }
+  .swap { border: 0; background: transparent; width: 36px; height: 36px; border-radius: 50%; display: grid; place-items: center; }
+  .swap:hover { background: var(--ground); }
+
+  /* ---------- Search ---------- */
+  .search { margin-top: 20px; display: flex; gap: 8px; }
+  .search input {
+    flex: 1; min-width: 0; font: inherit; font-size: 18px; color: var(--ink);
+    background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 12px 16px;
+  }
+  .search button { border: 0; border-radius: 12px; padding: 0 20px; background: var(--ink); color: var(--ground); font-weight: 600; }
+  .options { margin-top: 10px; display: flex; flex-wrap: wrap; gap: 16px; color: var(--muted); font-size: 14px; }
+  .options label { display: flex; align-items: center; gap: 6px; cursor: pointer; }
+  .message { margin: 12px 0 0; padding: 10px 14px; border-radius: 10px; background: var(--note); color: var(--note-ink); font-size: 15px; }
+
+  /* ---------- Layout ---------- */
+  .layout { margin-top: 20px; display: grid; grid-template-columns: minmax(0, 1fr) 260px; gap: 20px; align-items: start; }
+  @media (max-width: 760px) { .layout { grid-template-columns: minmax(0, 1fr); } }
+
+  /* ---------- Entry ---------- */
+  .entry { background: var(--surface); border: 1px solid var(--line); border-radius: 16px; padding: 24px; display: grid; gap: 20px; }
+  .head { display: flex; flex-wrap: wrap; align-items: baseline; gap: 8px 14px; }
+  .headword { font-family: "Literata", Georgia, serif; font-weight: 700; font-size: clamp(32px, 7vw, 46px); line-height: 1.1; margin: 0; overflow-wrap: anywhere; }
+  .arrow { color: var(--muted); font-size: 24px; }
+  .translation { font-family: "Literata", Georgia, serif; font-weight: 500; font-size: clamp(24px, 5vw, 32px); line-height: 1.15; overflow-wrap: anywhere; }
+  .type { font-size: 13px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); border: 1px solid var(--line); border-radius: 6px; padding: 2px 8px; align-self: center; }
+
+  .meaning { background: var(--note); color: var(--note-ink); border-radius: 12px; padding: 14px 16px; }
+  .label { display: block; font-size: 12px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 4px; opacity: 0.85; }
+  .meaning p { margin: 0; font-size: 19px; }
+
+  .columns { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+  @media (max-width: 560px) { .columns { grid-template-columns: minmax(0, 1fr); } }
+  .col { border-radius: 12px; padding: 16px; display: grid; gap: 14px; align-content: start; }
+  .col.en { background: var(--en-soft); --accent: var(--en); }
+  .col.fr { background: var(--fr-soft); --accent: var(--fr); }
+  .col h3 { margin: 0; font-size: 13px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--accent); }
+  .col .label { color: var(--accent); opacity: 1; }
+  .word-line { display: flex; align-items: center; gap: 10px; }
+  .word-line strong { font-family: "Literata", Georgia, serif; font-size: 24px; line-height: 1.2; overflow-wrap: anywhere; }
+  .sound { font-size: 15px; color: var(--muted); margin-top: 2px; }
+  .sound .ipa { color: var(--ink); font-size: 17px; }
+  .say { font-weight: 600; letter-spacing: 0.02em; }
+  .example { margin: 0; font-style: italic; }
+  .row { display: flex; align-items: flex-start; gap: 8px; }
+  .row > :first-child { flex: 1; min-width: 0; }
+
+  .speak {
+    flex: none; width: 34px; height: 34px; border-radius: 50%; border: 0;
+    background: var(--surface); color: var(--accent, var(--en)); display: grid; place-items: center;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.12);
+  }
+  .speak:hover { transform: scale(1.06); }
+  .speak svg { width: 18px; height: 18px; }
+
+  .chips { display: flex; flex-wrap: wrap; gap: 6px; }
+  .chip { border: 1px solid transparent; background: var(--surface); border-radius: 999px; padding: 4px 12px; font-size: 15px; }
+  .chip.linked { border-color: var(--accent); color: var(--accent); font-weight: 600; }
+  .chip:hover { border-color: var(--accent); }
+  .hint { margin: 0; font-size: 13px; color: var(--muted); }
+
+  /* ---------- Word list ---------- */
+  .list { background: var(--surface); border: 1px solid var(--line); border-radius: 16px; padding: 16px; }
+  .list h2 { margin: 0 0 10px; font-size: 13px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); }
+  .list ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 2px; max-height: 560px; overflow-y: auto; overflow-x: hidden; }
+  .list li button { width: 100%; text-align: left; border: 0; background: transparent; border-radius: 8px; padding: 6px 10px; display: flex; justify-content: space-between; gap: 8px; }
+  .list li { min-width: 0; }
+  .list li button:hover { background: var(--ground); }
+  .list li button.active { background: var(--ink); color: var(--ground); }
+  .list li button span, .list small { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .list small { color: var(--muted); text-align: right; flex-shrink: 1; }
+  .list li button.active small { color: inherit; opacity: 0.75; }
+  .list .empty { color: var(--muted); font-size: 14px; padding: 6px 10px; }
+
+  @media (prefers-reduced-motion: reduce) { .speak:hover { transform: none; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <div>
+      <h1 class="brand">Mot <span>à</span> <em>Mot</em></h1>
+      <p class="tagline">English ⇄ French dictionary · sound · examples · simpler words</p>
+    </div>
+    <div class="direction" aria-label="Translation direction">
+      <span class="lang-tag" id="fromTag">English</span>
+      <button class="swap" id="swapBtn" type="button" aria-label="Swap languages" title="Swap languages">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 7h13l-4-4M17 17H4l4 4"/></svg>
+      </button>
+      <span class="lang-tag" id="toTag">French</span>
+    </div>
+  </header>
+
+  <form class="search" id="searchForm">
+    <input id="searchInput" type="search" autocomplete="off" placeholder="Type a word…" aria-label="Search a word">
+    <button type="submit">Search</button>
+  </form>
+  <div class="options">
+    <label><input type="checkbox" id="slowBox"> Speak slowly</label>
+  </div>
+  <p class="message" id="message" hidden></p>
+
+  <div class="layout">
+    <main id="entry" class="entry" aria-live="polite"></main>
+    <aside class="list">
+      <h2 id="listTitle">All words</h2>
+      <ul id="wordList"></ul>
+    </aside>
+  </div>
+</div>
+
+<script>
+/* =========================================================
+   1. THE WORDS
+   Each word has English + French, sound (IPA + easy spelling),
+   a simpler word, a simple English meaning, similar words
+   and an example sentence. Add your own words here!
+   ========================================================= */
+const WORDS = [
+  { en: "enormous", fr: "énorme", type: "adjective",
+    enIpa: "/ɪˈnɔːr.məs/", enSay: "ih-NOR-mus", frIpa: "/e.nɔʁm/", frSay: "ay-NORM",
+    simpleEn: "very big", simpleFr: "très grand",
+    meaning: "Something that is very, very big.",
+    synEn: ["huge", "giant", "massive"], synFr: ["immense", "gigantesque", "colossal"],
+    exEn: "The elephant is enormous.", exFr: "L'éléphant est énorme." },
+
+  { en: "tiny", fr: "minuscule", type: "adjective",
+    enIpa: "/ˈtaɪ.ni/", enSay: "TY-nee", frIpa: "/mi.ny.skyl/", frSay: "mee-nü-SKÜL",
+    simpleEn: "very small", simpleFr: "tout petit",
+    meaning: "Something that is very, very small.",
+    synEn: ["little", "mini", "teeny"], synFr: ["petit", "microscopique", "infime"],
+    exEn: "The kitten has tiny paws.", exFr: "Le chaton a de minuscules pattes." },
+
+  { en: "delighted", fr: "ravi", type: "adjective",
+    enIpa: "/dɪˈlaɪ.tɪd/", enSay: "dih-LY-tid", frIpa: "/ʁa.vi/", frSay: "ra-VEE",
+    simpleEn: "very happy", simpleFr: "très content",
+    meaning: "Feeling very happy and pleased about something.",
+    synEn: ["thrilled", "pleased", "glad"], synFr: ["enchanté", "comblé", "heureux"],
+    exEn: "I am delighted to meet you.", exFr: "Je suis ravi de vous rencontrer." },
+
+  { en: "miserable", fr: "malheureux", type: "adjective",
+    enIpa: "/ˈmɪz.ər.ə.bəl/", enSay: "MIZ-er-uh-bul", frIpa: "/ma.lœ.ʁø/", frSay: "ma-luh-RUH",
+    simpleEn: "very sad", simpleFr: "très triste",
+    meaning: "Feeling very sad or unhappy.",
+    synEn: ["unhappy", "gloomy", "down"], synFr: ["triste", "abattu", "déprimé"],
+    exEn: "He felt miserable in the cold rain.", exFr: "Il se sentait malheureux sous la pluie froide." },
+
+  { en: "difficult", fr: "difficile", type: "adjective",
+    enIpa: "/ˈdɪf.ɪ.kəlt/", enSay: "DIF-ih-kult", frIpa: "/di.fi.sil/", frSay: "dee-fee-SEEL",
+    simpleEn: "hard", simpleFr: "dur",
+    meaning: "Not easy. It needs a lot of work or thinking.",
+    synEn: ["hard", "tough", "tricky"], synFr: ["dur", "compliqué", "pénible"],
+    exEn: "This exam is difficult.", exFr: "Cet examen est difficile." },
+
+  { en: "commence", fr: "entamer", type: "verb",
+    enIpa: "/kəˈmens/", enSay: "kuh-MENS", frIpa: "/ɑ̃.ta.me/", frSay: "ahn-ta-MAY",
+    simpleEn: "start", simpleFr: "commencer",
+    meaning: "To start something.",
+    synEn: ["begin", "start", "launch"], synFr: ["commencer", "débuter", "lancer"],
+    exEn: "We will commence the meeting at nine.", exFr: "Nous allons entamer la réunion à neuf heures." },
+
+  { en: "purchase", fr: "acquérir", type: "verb",
+    enIpa: "/ˈpɜːr.tʃəs/", enSay: "PUR-chus", frIpa: "/a.ke.ʁiʁ/", frSay: "a-kay-REER",
+    simpleEn: "buy", simpleFr: "acheter",
+    meaning: "To get something by paying money for it.",
+    synEn: ["buy", "get", "pick up"], synFr: ["acheter", "se procurer", "obtenir"],
+    exEn: "She wants to purchase a new car.", exFr: "Elle veut acquérir une nouvelle voiture." },
+
+  { en: "attempt", fr: "tenter", type: "verb",
+    enIpa: "/əˈtempt/", enSay: "uh-TEMPT", frIpa: "/tɑ̃.te/", frSay: "tahn-TAY",
+    simpleEn: "try", simpleFr: "essayer",
+    meaning: "To try to do something, usually something hard.",
+    synEn: ["try", "go for", "have a go"], synFr: ["essayer", "s'efforcer", "risquer"],
+    exEn: "I will attempt to swim across the lake.", exFr: "Je vais tenter de traverser le lac à la nage." },
+
+  { en: "require", fr: "nécessiter", type: "verb",
+    enIpa: "/rɪˈkwaɪ.ər/", enSay: "rih-KWY-er", frIpa: "/ne.se.si.te/", frSay: "nay-say-see-TAY",
+    simpleEn: "need", simpleFr: "avoir besoin de",
+    meaning: "To need something.",
+    synEn: ["need", "demand", "call for"], synFr: ["exiger", "demander", "réclamer"],
+    exEn: "Plants require water.", exFr: "Les plantes nécessitent de l'eau." },
+
+  { en: "inquire", fr: "se renseigner", type: "verb",
+    enIpa: "/ɪnˈkwaɪ.ər/", enSay: "in-KWY-er", frIpa: "/sə ʁɑ̃.sɛ.ɲe/", frSay: "suh rahn-sen-YAY",
+    simpleEn: "ask", simpleFr: "demander",
+    meaning: "To ask for information about something.",
+    synEn: ["ask", "question", "query"], synFr: ["demander", "questionner", "interroger"],
+    exEn: "I will inquire about the price.", exFr: "Je vais me renseigner sur le prix." },
+
+  { en: "reside", fr: "résider", type: "verb",
+    enIpa: "/rɪˈzaɪd/", enSay: "rih-ZYDE", frIpa: "/ʁe.zi.de/", frSay: "ray-zee-DAY",
+    simpleEn: "live", simpleFr: "habiter",
+    meaning: "To live in a place.",
+    synEn: ["live", "stay", "dwell"], synFr: ["habiter", "vivre", "demeurer"],
+    exEn: "They reside in Paris.", exFr: "Ils résident à Paris." },
+
+  { en: "observe", fr: "observer", type: "verb",
+    enIpa: "/əbˈzɜːrv/", enSay: "ub-ZURV", frIpa: "/ɔp.sɛʁ.ve/", frSay: "op-sair-VAY",
+    simpleEn: "watch", simpleFr: "regarder",
+    meaning: "To look at something carefully.",
+    synEn: ["watch", "notice", "see"], synFr: ["regarder", "examiner", "remarquer"],
+    exEn: "Scientists observe the stars at night.", exFr: "Les scientifiques observent les étoiles la nuit." },
+
+  { en: "obtain", fr: "obtenir", type: "verb",
+    enIpa: "/əbˈteɪn/", enSay: "ub-TAYN", frIpa: "/ɔp.tə.niʁ/", frSay: "op-tuh-NEER",
+    simpleEn: "get", simpleFr: "avoir",
+    meaning: "To get something, often after some effort.",
+    synEn: ["get", "gain", "earn"], synFr: ["avoir", "recevoir", "gagner"],
+    exEn: "He obtained a visa.", exFr: "Il a obtenu un visa." },
+
+  { en: "assist", fr: "aider", type: "verb",
+    enIpa: "/əˈsɪst/", enSay: "uh-SIST", frIpa: "/e.de/", frSay: "ay-DAY",
+    simpleEn: "help", simpleFr: "donner un coup de main",
+    meaning: "To help someone.",
+    synEn: ["help", "support", "aid"], synFr: ["épauler", "soutenir", "secourir"],
+    exEn: "Can I assist you?", exFr: "Puis-je vous aider ?" },
+
+  { en: "enhance", fr: "améliorer", type: "verb",
+    enIpa: "/ɪnˈhæns/", enSay: "in-HANSS", frIpa: "/a.me.ljɔ.ʁe/", frSay: "a-may-lyoh-RAY",
+    simpleEn: "make better", simpleFr: "rendre meilleur",
+    meaning: "To make something better.",
+    synEn: ["improve", "boost", "upgrade"], synFr: ["perfectionner", "embellir", "renforcer"],
+    exEn: "Good lighting can enhance a photo.", exFr: "Un bon éclairage peut améliorer une photo." },
+
+  { en: "conclude", fr: "conclure", type: "verb",
+    enIpa: "/kənˈkluːd/", enSay: "kun-KLOOD", frIpa: "/kɔ̃.klyʁ/", frSay: "kohn-KLÜR",
+    simpleEn: "end", simpleFr: "finir",
+    meaning: "To finish or end something.",
+    synEn: ["end", "finish", "close"], synFr: ["finir", "terminer", "achever"],
+    exEn: "Let's conclude the lesson here.", exFr: "Concluons la leçon ici." },
+
+  { en: "demonstrate", fr: "démontrer", type: "verb",
+    enIpa: "/ˈdem.ən.streɪt/", enSay: "DEM-un-strayt", frIpa: "/de.mɔ̃.tʁe/", frSay: "day-mohn-TRAY",
+    simpleEn: "show", simpleFr: "montrer",
+    meaning: "To show that something is true or how it works.",
+    synEn: ["show", "prove", "display"], synFr: ["montrer", "prouver", "expliquer"],
+    exEn: "The results demonstrate that the idea works.", exFr: "Les résultats démontrent que l'idée fonctionne." },
+
+  { en: "converse", fr: "converser", type: "verb",
+    enIpa: "/kənˈvɜːrs/", enSay: "kun-VURSS", frIpa: "/kɔ̃.vɛʁ.se/", frSay: "kohn-vair-SAY",
+    simpleEn: "talk", simpleFr: "parler",
+    meaning: "To talk with someone.",
+    synEn: ["talk", "chat", "speak"], synFr: ["parler", "discuter", "bavarder"],
+    exEn: "We conversed for hours.", exFr: "Nous avons conversé pendant des heures." },
+
+  { en: "sufficient", fr: "suffisant", type: "adjective",
+    enIpa: "/səˈfɪʃ.ənt/", enSay: "suh-FISH-unt", frIpa: "/sy.fi.zɑ̃/", frSay: "sü-fee-ZAHN",
+    simpleEn: "enough", simpleFr: "assez",
+    meaning: "As much as you need.",
+    synEn: ["enough", "adequate", "plenty"], synFr: ["assez", "satisfaisant", "convenable"],
+    exEn: "We have sufficient food for the trip.", exFr: "Nous avons une quantité suffisante de nourriture pour le voyage." },
+
+  { en: "numerous", fr: "nombreux", type: "adjective",
+    enIpa: "/ˈnuː.mər.əs/", enSay: "NOO-mer-us", frIpa: "/nɔ̃.bʁø/", frSay: "nohn-BRUH",
+    simpleEn: "many", simpleFr: "beaucoup de",
+    meaning: "A lot of; a big number of.",
+    synEn: ["many", "lots of", "countless"], synFr: ["beaucoup de", "plein de", "multiples"],
+    exEn: "She has numerous friends.", exFr: "Elle a de nombreux amis." },
+
+  { en: "rapid", fr: "rapide", type: "adjective",
+    enIpa: "/ˈræp.ɪd/", enSay: "RAP-id", frIpa: "/ʁa.pid/", frSay: "ra-PEED",
+    simpleEn: "fast", simpleFr: "qui va vite",
+    meaning: "Very quick; happening fast.",
+    synEn: ["fast", "quick", "speedy"], synFr: ["prompt", "vif", "véloce"],
+    exEn: "He made rapid progress.", exFr: "Il a fait des progrès rapides." },
+
+  { en: "exhausted", fr: "épuisé", type: "adjective",
+    enIpa: "/ɪɡˈzɔː.stɪd/", enSay: "ig-ZAWS-tid", frIpa: "/e.pɥi.ze/", frSay: "ay-pwee-ZAY",
+    simpleEn: "very tired", simpleFr: "très fatigué",
+    meaning: "So tired that you have no energy left.",
+    synEn: ["worn out", "drained", "tired"], synFr: ["crevé", "vidé", "fatigué"],
+    exEn: "After the run, I was exhausted.", exFr: "Après la course, j'étais épuisé." },
+
+  { en: "famished", fr: "affamé", type: "adjective",
+    enIpa: "/ˈfæm.ɪʃt/", enSay: "FAM-isht", frIpa: "/a.fa.me/", frSay: "a-fa-MAY",
+    simpleEn: "very hungry", simpleFr: "qui a très faim",
+    meaning: "Extremely hungry.",
+    synEn: ["starving", "hungry", "ravenous"], synFr: ["qui meurt de faim", "vorace", "qui a faim"],
+    exEn: "I skipped lunch and now I'm famished.", exFr: "J'ai sauté le déjeuner et maintenant je suis affamé." },
+
+  { en: "frightened", fr: "effrayé", type: "adjective",
+    enIpa: "/ˈfraɪ.tənd/", enSay: "FRY-tund", frIpa: "/e.fʁɛ.je/", frSay: "ay-freh-YAY",
+    simpleEn: "scared", simpleFr: "qui a peur",
+    meaning: "Feeling fear; afraid.",
+    synEn: ["scared", "afraid", "terrified"], synFr: ["apeuré", "terrifié", "craintif"],
+    exEn: "The child was frightened of the dark.", exFr: "L'enfant était effrayé par le noir." },
+
+  { en: "furious", fr: "furieux", type: "adjective",
+    enIpa: "/ˈfjʊr.i.əs/", enSay: "FYOOR-ee-us", frIpa: "/fy.ʁjø/", frSay: "fü-RYUH",
+    simpleEn: "very angry", simpleFr: "très en colère",
+    meaning: "Extremely angry.",
+    synEn: ["angry", "mad", "livid"], synFr: ["en colère", "fâché", "enragé"],
+    exEn: "Dad was furious about the broken window.", exFr: "Papa était furieux à cause de la fenêtre cassée." },
+
+  { en: "intelligent", fr: "intelligent", type: "adjective",
+    enIpa: "/ɪnˈtel.ɪ.dʒənt/", enSay: "in-TEL-ih-junt", frIpa: "/ɛ̃.te.li.ʒɑ̃/", frSay: "an-tay-lee-ZHAHN",
+    simpleEn: "smart", simpleFr: "malin",
+    meaning: "Good at learning, thinking and understanding.",
+    synEn: ["smart", "clever", "bright"], synFr: ["malin", "doué", "brillant"],
+    exEn: "Dolphins are intelligent animals.", exFr: "Les dauphins sont des animaux intelligents." },
+
+  { en: "courageous", fr: "courageux", type: "adjective",
+    enIpa: "/kəˈreɪ.dʒəs/", enSay: "kuh-RAY-jus", frIpa: "/ku.ʁa.ʒø/", frSay: "koo-ra-ZHUH",
+    simpleEn: "brave", simpleFr: "qui n'a pas peur",
+    meaning: "Not afraid to do something hard or scary.",
+    synEn: ["brave", "bold", "fearless"], synFr: ["audacieux", "intrépide", "vaillant"],
+    exEn: "The firefighter was very courageous.", exFr: "Le pompier a été très courageux." },
+
+  { en: "magnificent", fr: "magnifique", type: "adjective",
+    enIpa: "/mæɡˈnɪf.ɪ.sənt/", enSay: "mag-NIF-ih-sunt", frIpa: "/ma.ɲi.fik/", frSay: "ma-nyee-FEEK",
+    simpleEn: "very beautiful", simpleFr: "très beau",
+    meaning: "Very beautiful and impressive.",
+    synEn: ["beautiful", "stunning", "splendid"], synFr: ["superbe", "splendide", "beau"],
+    exEn: "The view from the mountain is magnificent.", exFr: "La vue depuis la montagne est magnifique." },
+
+  { en: "dreadful", fr: "épouvantable", type: "adjective",
+    enIpa: "/ˈdred.fəl/", enSay: "DRED-ful", frIpa: "/e.pu.vɑ̃.tabl/", frSay: "ay-poo-vahn-TAHBL",
+    simpleEn: "very bad", simpleFr: "très mauvais",
+    meaning: "Very bad or unpleasant.",
+    synEn: ["awful", "terrible", "horrible"], synFr: ["affreux", "horrible", "terrible"],
+    exEn: "The weather was dreadful all week.", exFr: "Le temps a été épouvantable toute la semaine." },
+
+  { en: "costly", fr: "onéreux", type: "adjective",
+    enIpa: "/ˈkɔːst.li/", enSay: "KAWST-lee", frIpa: "/ɔ.ne.ʁø/", frSay: "oh-nay-RUH",
+    simpleEn: "expensive", simpleFr: "cher",
+    meaning: "Costing a lot of money.",
+    synEn: ["expensive", "pricey", "dear"], synFr: ["cher", "coûteux", "hors de prix"],
+    exEn: "Repairing the roof was costly.", exFr: "La réparation du toit a été onéreuse." },
+
+  { en: "inexpensive", fr: "bon marché", type: "adjective",
+    enIpa: "/ˌɪn.ɪkˈspen.sɪv/", enSay: "in-ik-SPEN-siv", frIpa: "/bɔ̃ maʁ.ʃe/", frSay: "bohn mar-SHAY",
+    simpleEn: "cheap", simpleFr: "pas cher",
+    meaning: "Not costing much money.",
+    synEn: ["cheap", "affordable", "low-cost"], synFr: ["pas cher", "abordable", "économique"],
+    exEn: "This café serves inexpensive meals.", exFr: "Ce café sert des repas bon marché." },
+
+  { en: "ancient", fr: "antique", type: "adjective",
+    enIpa: "/ˈeɪn.ʃənt/", enSay: "AYN-shunt", frIpa: "/ɑ̃.tik/", frSay: "ahn-TEEK",
+    simpleEn: "very old", simpleFr: "très vieux",
+    meaning: "From a very long time ago.",
+    synEn: ["old", "age-old", "antique"], synFr: ["ancien", "vieux", "millénaire"],
+    exEn: "Rome has many ancient buildings.", exFr: "Rome a beaucoup de bâtiments antiques." },
+
+  { en: "vacant", fr: "vacant", type: "adjective",
+    enIpa: "/ˈveɪ.kənt/", enSay: "VAY-kunt", frIpa: "/va.kɑ̃/", frSay: "va-KAHN",
+    simpleEn: "empty", simpleFr: "libre",
+    meaning: "Empty; nobody is using it.",
+    synEn: ["empty", "free", "available"], synFr: ["libre", "vide", "inoccupé"],
+    exEn: "The job is still vacant.", exFr: "Le poste est encore vacant." },
+
+  { en: "residence", fr: "domicile", type: "noun",
+    enIpa: "/ˈrez.ɪ.dəns/", enSay: "REZ-ih-dunss", frIpa: "/dɔ.mi.sil/", frSay: "doh-mee-SEEL",
+    simpleEn: "home", simpleFr: "maison",
+    meaning: "The place where someone lives.",
+    synEn: ["home", "house", "address"], synFr: ["maison", "logement", "demeure"],
+    exEn: "Please write your place of residence.", exFr: "Veuillez indiquer votre domicile." },
+
+  { en: "automobile", fr: "automobile", type: "noun",
+    enIpa: "/ˈɔː.tə.mə.biːl/", enSay: "AW-tuh-muh-beel", frIpa: "/ɔ.tɔ.mɔ.bil/", frSay: "oh-toh-moh-BEEL",
+    simpleEn: "car", simpleFr: "voiture",
+    meaning: "A car.",
+    synEn: ["car", "vehicle", "auto"], synFr: ["voiture", "véhicule", "auto"],
+    exEn: "He works in the automobile industry.", exFr: "Il travaille dans l'industrie automobile." },
+
+  { en: "physician", fr: "médecin", type: "noun",
+    enIpa: "/fɪˈzɪʃ.ən/", enSay: "fih-ZISH-un", frIpa: "/med.sɛ̃/", frSay: "mayd-SAN",
+    simpleEn: "doctor", simpleFr: "docteur",
+    meaning: "A doctor who helps sick people.",
+    synEn: ["doctor", "GP", "medic"], synFr: ["docteur", "généraliste", "toubib"],
+    exEn: "You should see a physician.", exFr: "Tu devrais voir un médecin." },
+
+  { en: "approximately", fr: "approximativement", type: "adverb",
+    enIpa: "/əˈprɑːk.sɪ.mət.li/", enSay: "uh-PROK-sih-mut-lee", frIpa: "/a.pʁɔk.si.ma.tiv.mɑ̃/", frSay: "a-prok-see-ma-teev-MAHN",
+    simpleEn: "about", simpleFr: "environ",
+    meaning: "Close to a number, but not exact.",
+    synEn: ["about", "around", "roughly"], synFr: ["environ", "à peu près", "presque"],
+    exEn: "It takes approximately two hours.", exFr: "Cela prend approximativement deux heures." },
+
+  { en: "immediately", fr: "immédiatement", type: "adverb",
+    enIpa: "/ɪˈmiː.di.ət.li/", enSay: "ih-MEE-dee-ut-lee", frIpa: "/i.me.djat.mɑ̃/", frSay: "ee-may-dyat-MAHN",
+    simpleEn: "right now", simpleFr: "tout de suite",
+    meaning: "At once, without waiting.",
+    synEn: ["now", "instantly", "straight away"], synFr: ["tout de suite", "aussitôt", "sur-le-champ"],
+    exEn: "Call me immediately.", exFr: "Appelle-moi immédiatement." },
+
+  { en: "frequently", fr: "fréquemment", type: "adverb",
+    enIpa: "/ˈfriː.kwənt.li/", enSay: "FREE-kwunt-lee", frIpa: "/fʁe.ka.mɑ̃/", frSay: "fray-ka-MAHN",
+    simpleEn: "often", simpleFr: "souvent",
+    meaning: "Many times; often.",
+    synEn: ["often", "regularly", "a lot"], synFr: ["souvent", "régulièrement", "couramment"],
+    exEn: "She frequently visits her grandmother.", exFr: "Elle rend fréquemment visite à sa grand-mère." },
+];
+
+/* =========================================================
+   2. SMALL HELPERS
+   ========================================================= */
+const $ = (id) => document.getElementById(id);
+
+// "Épuisé" -> "epuise" so people can search without accents
+function clean(text) {
+  return text.toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "").trim();
+}
+
+function esc(text) {
+  return String(text).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+}
+
+// Remember the language direction (optional, may be blocked)
+function load(key, fallback) {
+  try { return localStorage.getItem(key) || fallback; } catch (e) { return fallback; }
+}
+function save(key, value) {
+  try { localStorage.setItem(key, value); } catch (e) { /* ignore */ }
+}
+
+/* =========================================================
+   3. SPEAKING (uses the voice built into the browser)
+   ========================================================= */
+function speak(text, lang) {
+  if (!("speechSynthesis" in window)) {
+    showMessage("Sorry, this browser cannot play sound. Try Chrome, Edge or Safari.");
+    return;
+  }
+  speechSynthesis.cancel();
+  const say = new SpeechSynthesisUtterance(text);
+  say.lang = lang === "fr" ? "fr-FR" : "en-US";
+  const voice = speechSynthesis.getVoices().find((v) => v.lang.toLowerCase().startsWith(lang));
+  if (voice) say.voice = voice;
+  say.rate = $("slowBox").checked ? 0.6 : 0.9;
+  speechSynthesis.speak(say);
+}
+
+const SPEAKER_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 5 6 9H2v6h4l5 4V5z"/><path d="M15.5 8.5a5 5 0 0 1 0 7M19 5a10 10 0 0 1 0 14"/></svg>';
+
+function speakButton(text, lang, label) {
+  return `<button type="button" class="speak" data-say="${esc(text)}" data-lang="${lang}" aria-label="Listen: ${esc(label || text)}" title="Listen">${SPEAKER_ICON}</button>`;
+}
+
+/* =========================================================
+   4. APP STATE
+   from = the language you type in ("en" or "fr")
+   ========================================================= */
+let from = load("motamot-from", "en") === "fr" ? "fr" : "en";
+let current = WORDS[0];
+
+const NAMES = { en: "English", fr: "French" };
+const other = (lang) => (lang === "en" ? "fr" : "en");
+
+function findExact(word, lang) {
+  return WORDS.find((w) => clean(w[lang]) === clean(word));
+}
+
+/* =========================================================
+   5. DRAW THE PAGE
+   ========================================================= */
+function showMessage(text) {
+  $("message").textContent = text;
+  $("message").hidden = !text;
+}
+
+function drawDirection() {
+  $("fromTag").textContent = NAMES[from];
+  $("fromTag").className = "lang-tag " + from;
+  $("toTag").textContent = NAMES[other(from)];
+  $("toTag").className = "lang-tag " + other(from);
+  $("searchInput").placeholder = from === "en" ? "Type an English word… (e.g. tiny)" : "Tapez un mot français… (ex. épuisé)";
+  $("listTitle").textContent = NAMES[from] + " words";
+}
+
+// One coloured box for a language: word, sound, simpler word, similar words, example
+function languageBox(w, lang) {
+  const title = lang === "en" ? "English" : "Français";
+  const ipa = lang === "en" ? w.enIpa : w.frIpa;
+  const sayIt = lang === "en" ? w.enSay : w.frSay;
+  const simple = lang === "en" ? w.simpleEn : w.simpleFr;
+  const similar = lang === "en" ? w.synEn : w.synFr;
+  const example = lang === "en" ? w.exEn : w.exFr;
+
+  const chips = similar.map((s) => {
+    const inDict = findExact(s, lang) ? " linked" : "";
+    return `<button type="button" class="chip${inDict}" data-word="${esc(s)}" data-lang="${lang}">${esc(s)}</button>`;
+  }).join("");
+
+  return `
+    <section class="col ${lang}">
+      <h3>${title}</h3>
+      <div>
+        <div class="word-line"><strong>${esc(w[lang])}</strong>${speakButton(w[lang], lang)}</div>
+        <div class="sound"><span class="ipa">${esc(ipa)}</span> · say <span class="say">${esc(sayIt)}</span></div>
+      </div>
+      <div>
+        <span class="label">Simpler word</span>
+        <div class="row"><span>${esc(simple)}</span>${speakButton(simple, lang)}</div>
+      </div>
+      <div>
+        <span class="label">Similar words</span>
+        <div class="chips">${chips}</div>
+      </div>
+      <div>
+        <span class="label">Example</span>
+        <div class="row"><p class="example">${esc(example)}</p>${speakButton(example, lang, "example sentence")}</div>
+      </div>
+    </section>`;
+}
+
+function drawEntry(w) {
+  current = w;
+  const to = other(from);
+  $("entry").innerHTML = `
+    <div class="head">
+      <h2 class="headword">${esc(w[from])}</h2>
+      <span class="arrow" aria-hidden="true">→</span>
+      <span class="translation">${esc(w[to])}</span>
+      <span class="type">${esc(w.type)}</span>
+    </div>
+    <div class="meaning">
+      <span class="label">Simple English meaning</span>
+      <p>${esc(w.meaning)}</p>
+    </div>
+    <div class="columns">
+      ${languageBox(w, from)}
+      ${languageBox(w, to)}
+    </div>
+    <p class="hint">Tap a speaker to listen. Similar words with a coloured border are in the dictionary — tap to open them. Other words play their sound.</p>`;
+  drawList($("searchInput").value);
+}
+
+function drawList(query) {
+  const q = clean(query || "");
+  const words = WORDS
+    .filter((w) => !q || clean(w[from]).includes(q) || clean(w[other(from)]).includes(q))
+    .sort((a, b) => a[from].localeCompare(b[from], from));
+
+  if (!words.length) {
+    $("wordList").innerHTML = '<li class="empty">No words match.</li>';
+    return;
+  }
+  $("wordList").innerHTML = words.map((w) => `
+    <li><button type="button" class="${w === current ? "active" : ""}" data-index="${WORDS.indexOf(w)}">
+      <span>${esc(w[from])}</span><small>${esc(w[other(from)])}</small>
+    </button></li>`).join("");
+}
+
+/* =========================================================
+   6. SEARCH
+   ========================================================= */
+function search(text) {
+  const q = clean(text);
+  if (!q) return;
+  showMessage("");
+
+  // 1) Exact word in the language you are typing
+  let found = findExact(q, from);
+
+  // 2) Exact word in the other language -> switch direction for you
+  if (!found && findExact(q, other(from))) {
+    found = findExact(q, other(from));
+    setDirection(other(from));
+    showMessage(`"${text}" is a ${NAMES[from]} word, so I switched to ${NAMES[from]} → ${NAMES[other(from)]}.`);
+  }
+
+  // 3) Start of a word, or a simpler/similar word (e.g. "big" finds "enormous")
+  if (!found) {
+    found = WORDS.find((w) => clean(w[from]).startsWith(q));
+  }
+  if (!found) {
+    const key = from === "en" ? ["simpleEn", "synEn"] : ["simpleFr", "synFr"];
+    found = WORDS.find((w) => clean(w[key[0]]).includes(q) || w[key[1]].some((s) => clean(s) === q));
+    if (found) showMessage(`"${text}" is not a main word here, but it is close to "${found[from]}".`);
+  }
+
+  if (found) {
+    drawEntry(found);
+  } else {
+    showMessage(`"${text}" is not in the dictionary yet. Pick a word from the list, or add it to WORDS in the code.`);
+  }
+}
+
+function setDirection(lang) {
+  from = lang;
+  save("motamot-from", from);
+  drawDirection();
+}
+
+/* =========================================================
+   7. BUTTON CLICKS
+   ========================================================= */
+$("searchForm").addEventListener("submit", (e) => {
+  e.preventDefault();
+  search($("searchInput").value);
+});
+
+$("searchInput").addEventListener("input", (e) => drawList(e.target.value));
+
+$("swapBtn").addEventListener("click", () => {
+  setDirection(other(from));
+  showMessage("");
+  drawEntry(current);
+});
+
+// One listener for all buttons inside the page
+document.addEventListener("click", (e) => {
+  const speakBtn = e.target.closest(".speak");
+  if (speakBtn) { speak(speakBtn.dataset.say, speakBtn.dataset.lang); return; }
+
+  const chip = e.target.closest(".chip");
+  if (chip) {
+    const w = findExact(chip.dataset.word, chip.dataset.lang);
+    if (w) {
+      if (chip.dataset.lang !== from) setDirection(chip.dataset.lang);
+      showMessage("");
+      drawEntry(w);
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    } else {
+      speak(chip.dataset.word, chip.dataset.lang);
+    }
+    return;
+  }
+
+  const item = e.target.closest("#wordList button");
+  if (item) { showMessage(""); drawEntry(WORDS[Number(item.dataset.index)]); }
+});
+
+// Some browsers load voices a little later
+if ("speechSynthesis" in window) speechSynthesis.onvoiceschanged = () => {};
+
+/* =========================================================
+   8. START
+   ========================================================= */
+drawDirection();
+drawEntry(from === "en" ? WORDS[0] : findExact("épuisé", "fr"));
+</script>
+</body>
+</html>
