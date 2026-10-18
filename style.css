@@ -1,0 +1,158 @@
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: Arial, sans-serif;
+  background: #f4f6fb;
+  color: #333;
+}
+
+main {
+  max-width: 600px;
+  margin: 0 auto;
+  padding: 16px;
+}
+
+h1 {
+  text-align: center;
+}
+
+/* Summary boxes */
+.summary {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+
+.box {
+  flex: 1;
+  background: white;
+  border-radius: 10px;
+  padding: 12px;
+  text-align: center;
+}
+
+.box p,
+.box h2 {
+  margin: 4px 0;
+}
+
+.box h2 {
+  font-size: 1.2rem;
+}
+
+.income h2 {
+  color: #2e9e5b;
+}
+
+.expense h2 {
+  color: #d9534f;
+}
+
+/* Cards */
+.card {
+  background: white;
+  border-radius: 10px;
+  padding: 16px;
+  margin-bottom: 16px;
+}
+
+.card h3 {
+  margin-top: 0;
+}
+
+/* Form */
+form {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+input,
+select,
+button {
+  padding: 10px;
+  font-size: 1rem;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+}
+
+button {
+  background: #4a6cf7;
+  color: white;
+  border: none;
+  cursor: pointer;
+}
+
+button:hover {
+  background: #3a58d6;
+}
+
+/* Category bars */
+.cat-row {
+  margin-bottom: 10px;
+}
+
+.cat-label {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.9rem;
+}
+
+.bar {
+  height: 8px;
+  background: #eee;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.bar div {
+  height: 100%;
+  background: #d9534f;
+}
+
+/* History list */
+ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+li {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 0;
+  border-bottom: 1px solid #eee;
+}
+
+li small {
+  color: #888;
+}
+
+.plus {
+  color: #2e9e5b;
+}
+
+.minus {
+  color: #d9534f;
+}
+
+.delete {
+  background: none;
+  color: #999;
+  padding: 4px 8px;
+  margin-left: 8px;
+}
+
+.delete:hover {
+  background: #fde8e8;
+  color: #d9534f;
+}
+
+.empty {
+  color: #999;
+  text-align: center;
+}
