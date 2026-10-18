@@ -2,7 +2,23 @@
 
 A simple app to track your money: what comes in (income) and what goes out (expenses).
 
-## How to use
+## Paycheck plan (paid every 2 weeks)
+
+1. **Accounts tab:** add each bank account and how much is in it now.
+2. **Bills tab:** add each bill, how often it comes, which account pays it, and the next due date.
+3. **Payday tab:** on payday, type your paycheck amount. The app tells you how much
+   to send to each account. What is left is free to spend.
+4. Click **I moved the money ✔**. The accounts go up and the next payday moves 2 weeks later.
+5. When you pay a bill, click **Paid** on the Bills tab. The money comes out of the account
+   and the bill moves to its next due date.
+
+**The maths:** each bill is saved a little every payday.
+`bill amount × times per year ÷ 26 paydays`.
+Example: rent $1300 a month → $1300 × 12 ÷ 26 = **$600 every payday**.
+
+The Accounts tab warns you (⚠) if an account doesn't have enough for the bills due before your next payday.
+
+## Tracker
 
 1. Open `index.html` in your browser (just double-click it).
 2. Type what you spent or earned, the amount, pick the type and category, then click **Add**.
@@ -16,4 +32,5 @@ Your data is saved in your browser, so it is still there when you come back.
 
 - `index.html`: the page layout
 - `style.css`: the colors and look
-- `app.js`: the logic (adding, deleting, totals)
+- `app.js`: the tracker logic (adding, deleting, totals)
+- `plan.js`: the paycheck plan (accounts, bills, payday split)

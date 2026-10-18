@@ -156,3 +156,82 @@ li small {
   color: #999;
   text-align: center;
 }
+
+/* Tabs */
+.tabs {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 16px;
+}
+
+.tabs button {
+  flex: 1;
+  background: white;
+  color: #333;
+}
+
+.tabs button.active {
+  background: #4a6cf7;
+  color: white;
+}
+
+.hidden {
+  display: none;
+}
+
+/* Payday page */
+#pay-amount,
+label {
+  display: block;
+  width: 100%;
+  margin-bottom: 10px;
+}
+
+label input {
+  display: block;
+  width: 100%;
+  margin-top: 4px;
+}
+
+#moved {
+  width: 100%;
+  margin-top: 10px;
+}
+
+.hint {
+  color: #888;
+  font-size: 0.85rem;
+}
+
+.ok {
+  color: #2e9e5b;
+}
+
+.warn {
+  color: #d9534f;
+}
+
+.small-btn {
+  padding: 4px 10px;
+  font-size: 0.85rem;
+  margin-left: 4px;
+}
+
+.left-over {
+  font-weight: bold;
+  border-bottom: none;
+}
+
+.tabs button:hover {
+  background: #e8ecff;
+}
+
+.tabs button.active:hover {
+  background: #3a58d6;
+}
+
+/* Keep amount and buttons on one line */
+li > div:last-child {
+  white-space: nowrap;
+  margin-left: 8px;
+}
