@@ -110,7 +110,14 @@ function dueUntil(accountId, endDate) {
       due = nextDue(bill.often, due);
     }
   });
-  return total;
+  return total + installmentsDue(accountId, endDate);
+}
+
+// What to send to an account this payday:
+// its bills share + Pay in 4 payments due in the next 2 weeks
+function toSendNow(accountId) {
+  const share = shareForAccount(accountId) + installmentsDue(accountId, addDays(today(), 13));
+  return Math.round(share * 100) / 100;
 }
 
 function getNextPayday() {
@@ -159,11 +166,15 @@ function editBalance(account) {
 }
 
 function deleteAccount(account) {
-  const used = plan.bills.some(function (bill) {
-    return bill.accountId === account.id;
-  });
+  const used =
+    plan.bills.some(function (bill) {
+      return bill.accountId === account.id;
+    }) ||
+    buys.some(function (buy) {
+      return buy.accountId === account.id;
+    });
   if (used) {
-    alert("Some bills use this account. Delete or move those bills first.");
+    alert("Some bills or Pay in 4 purchases use this account. Delete those first.");
     return;
   }
   if (!confirm(`Delete "${account.name}"?`)) return;
@@ -336,9 +347,11 @@ function showSplit() {
   let rows = "";
   let totalToMove = 0;
   plan.accounts.forEach(function (account) {
-    const share = shareForAccount(account.id);
+    const share = toSendNow(account.id);
+    const payIn4 = installmentsDue(account.id, addDays(today(), 13));
+    const note = payIn4 > 0 ? `<br><small>incl. ${money(payIn4)} Pay in 4</small>` : "";
     totalToMove += share;
-    rows += `<li><span>${clean(account.name)}</span><span>${money(share)}</span></li>`;
+    rows += `<li><span>${clean(account.name)}${note}</span><span>${money(share)}</span></li>`;
   });
 
   const leftOver = pay - totalToMove;
@@ -365,7 +378,7 @@ document.getElementById("moved").addEventListener("click", function () {
   }
 
   plan.accounts.forEach(function (account) {
-    account.balance += shareForAccount(account.id);
+    account.balance += toSendNow(account.id);
   });
 
   items.push({
@@ -393,6 +406,7 @@ function showPlan() {
   showAccounts();
   showBills();
   showSplit();
+  showInstallments();
 }
 
 showPlan();

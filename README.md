@@ -18,6 +18,17 @@ Example: rent $1300 a month → $1300 × 12 ÷ 26 = **$600 every payday**.
 
 The Accounts tab warns you (⚠) if an account doesn't have enough for the bills due before your next payday.
 
+## Pay in 4 (Afterpay, PayPal)
+
+1. **Pay in 4 tab:** add what you bought, Afterpay or PayPal, the total price,
+   the number of payments (usually 4) and the first payment date.
+2. The app makes all the payments for you, 2 weeks apart.
+   Example: $100 in 4 = $25 every 2 weeks.
+3. At the top you see how much you **still owe** and what is **due in the next 2 weeks**.
+4. Click a payment when it's paid ✔. Late ones show in red.
+5. On payday, the app adds the Pay in 4 payments due in the next 2 weeks
+   to what you send to that account.
+
 ## Tracker
 
 1. Open `index.html` in your browser (just double-click it).
@@ -31,6 +42,7 @@ Your data is saved in your browser, so it is still there when you come back.
 ## Files
 
 - `index.html`: the page layout
-- `style.css`: the colors and look
+- `style.css`: the colors and look (dark mode colors are at the top)
 - `app.js`: the tracker logic (adding, deleting, totals)
 - `plan.js`: the paycheck plan (accounts, bills, payday split)
+- `installments.js`: Pay in 4 purchases (Afterpay, PayPal)

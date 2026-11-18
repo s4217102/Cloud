@@ -14,6 +14,7 @@
     <nav class="tabs">
       <button data-tab="pay" class="active">Payday</button>
       <button data-tab="bills">Bills</button>
+      <button data-tab="installments">Pay in 4</button>
       <button data-tab="accounts">Accounts</button>
       <button data-tab="tracker">Tracker</button>
     </nav>
@@ -53,6 +54,42 @@
       <section class="card">
         <h3>Upcoming bills</h3>
         <ul id="bill-list"></ul>
+      </section>
+    </div>
+
+    <!-- ===== Pay in 4 page (Afterpay, PayPal) ===== -->
+    <div class="tab hidden" id="tab-installments">
+      <section class="summary">
+        <div class="box expense">
+          <p>Still owed</p>
+          <h2 id="owed-total">$0.00</h2>
+        </div>
+        <div class="box">
+          <p>Due next 2 weeks</p>
+          <h2 id="owed-soon">$0.00</h2>
+        </div>
+      </section>
+      <section class="card">
+        <h3>Add a Pay in 4 purchase</h3>
+        <form id="buy-form">
+          <input type="text" id="buy-name" placeholder="What did you buy? (e.g. Shoes)" required>
+          <select id="buy-provider">
+            <option>Afterpay</option>
+            <option>PayPal</option>
+            <option>Other</option>
+          </select>
+          <input type="number" id="buy-total" placeholder="Total price" min="0.01" step="0.01" required>
+          <label>Number of payments <input type="number" id="buy-count" value="4" min="2" max="12" required></label>
+          <label>First payment date <input type="date" id="buy-first" required></label>
+          <select id="buy-account"></select>
+          <label class="check"><input type="checkbox" id="buy-first-paid" checked> First payment was paid when I bought it</label>
+          <button type="submit">Add purchase</button>
+        </form>
+      </section>
+      <section class="card">
+        <h3>My purchases</h3>
+        <ul id="buy-list"></ul>
+        <p class="hint">Click a payment when it's paid. The money comes out of the account.</p>
       </section>
     </div>
 
@@ -130,6 +167,7 @@
   </main>
 
   <script src="app.js"></script>
+  <script src="installments.js"></script>
   <script src="plan.js"></script>
 </body>
 </html>
