@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>My Budget</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <main>
+    <h1>My Budget</h1>
+
+    <!-- Tabs to switch pages -->
+    <nav class="tabs">
+      <button data-tab="pay" class="active">Payday</button>
+      <button data-tab="bills">Bills</button>
+      <button data-tab="installments">Pay in 4</button>
+      <button data-tab="accounts">Accounts</button>
+      <button data-tab="tracker">Tracker</button>
+    </nav>
+
+    <!-- ===== Payday page ===== -->
+    <div class="tab" id="tab-pay">
+      <section class="card">
+        <h3>Got paid? 💰</h3>
+        <input type="number" id="pay-amount" placeholder="Paycheck amount" min="0" step="0.01">
+        <label>Next payday <input type="date" id="next-payday"></label>
+        <div id="split"></div>
+        <button id="moved">I moved the money ✔</button>
+        <p class="hint">How it works: each bill gets a small piece of every paycheck.
+          A monthly bill × 12 months ÷ 26 paydays = what to save each payday.</p>
+      </section>
+    </div>
+
+    <!-- ===== Bills page ===== -->
+    <div class="tab hidden" id="tab-bills">
+      <section class="card">
+        <h3>Add a bill</h3>
+        <form id="bill-form">
+          <input type="text" id="bill-name" placeholder="Bill name (e.g. Rent)" required>
+          <input type="number" id="bill-amount" placeholder="Amount" min="0.01" step="0.01" required>
+          <select id="bill-often">
+            <option value="weekly">Every week</option>
+            <option value="fortnightly">Every 2 weeks</option>
+            <option value="monthly" selected>Every month</option>
+            <option value="quarterly">Every 3 months</option>
+            <option value="yearly">Every year</option>
+          </select>
+          <select id="bill-account"></select>
+          <label>Next due date <input type="date" id="bill-due" required></label>
+          <button type="submit">Add bill</button>
+        </form>
+      </section>
+      <section class="card">
+        <h3>Upcoming bills</h3>
+        <ul id="bill-list"></ul>
+      </section>
+    </div>
+
+    <!-- ===== Pay in 4 page (Afterpay, PayPal) ===== -->
+    <div class="tab hidden" id="tab-installments">
+      <section class="summary">
+        <div class="box expense">
+          <p>Still owed</p>
+          <h2 id="owed-total">$0.00</h2>
+        </div>
+        <div class="box">
+          <p>Due next 2 weeks</p>
+          <h2 id="owed-soon">$0.00</h2>
+        </div>
+      </section>
+      <section class="card">
+        <h3>Add a Pay in 4 purchase</h3>
+        <form id="buy-form">
+          <input type="text" id="buy-name" placeholder="What did you buy? (e.g. Shoes)" required>
+          <select id="buy-provider">
+            <option>Afterpay</option>
+            <option>PayPal</option>
+            <option>Other</option>
+          </select>
+          <input type="number" id="buy-total" placeholder="Total price" min="0.01" step="0.01" required>
+          <label>Number of payments <input type="number" id="buy-count" value="4" min="2" max="12" required></label>
+          <label>First payment date <input type="date" id="buy-first" required></label>
+          <select id="buy-account"></select>
+          <label class="check"><input type="checkbox" id="buy-first-paid" checked> First payment was paid when I bought it</label>
+          <button type="submit">Add purchase</button>
+        </form>
+      </section>
+      <section class="card">
+        <h3>My purchases</h3>
+        <ul id="buy-list"></ul>
+        <p class="hint">Click a payment when it's paid. The money comes out of the account.</p>
+      </section>
+    </div>
+
+    <!-- ===== Accounts page ===== -->
+    <div class="tab hidden" id="tab-accounts">
+      <section class="card">
+        <h3>Add a bank account</h3>
+        <form id="account-form">
+          <input type="text" id="account-name" placeholder="Account name (e.g. Bills account)" required>
+          <input type="number" id="account-balance" placeholder="Money in it now" step="0.01">
+          <button type="submit">Add account</button>
+        </form>
+      </section>
+      <section class="card">
+        <h3>My accounts</h3>
+        <ul id="account-list"></ul>
+      </section>
+    </div>
+
+    <!-- ===== Tracker page (income and expenses) ===== -->
+    <div class="tab hidden" id="tab-tracker">
+    <!-- Summary boxes -->
+    <section class="summary">
+      <div class="box">
+        <p>Balance</p>
+        <h2 id="balance">$0.00</h2>
+      </div>
+      <div class="box income">
+        <p>Income</p>
+        <h2 id="total-income">$0.00</h2>
+      </div>
+      <div class="box expense">
+        <p>Expenses</p>
+        <h2 id="total-expense">$0.00</h2>
+      </div>
+    </section>
+
+    <!-- Form to add a new item -->
+    <section class="card">
+      <h3>Add new</h3>
+      <form id="form">
+        <input type="text" id="name" placeholder="What is it? (e.g. Coffee)" required>
+        <input type="number" id="amount" placeholder="Amount" min="0.01" step="0.01" required>
+        <select id="type">
+          <option value="expense">Expense</option>
+          <option value="income">Income</option>
+        </select>
+        <select id="category">
+          <option>Food</option>
+          <option>Rent</option>
+          <option>Transport</option>
+          <option>Shopping</option>
+          <option>Fun</option>
+          <option>Bills</option>
+          <option>Salary</option>
+          <option>Other</option>
+        </select>
+        <input type="date" id="date" required>
+        <button type="submit">Add</button>
+      </form>
+    </section>
+
+    <!-- Spending by category -->
+    <section class="card">
+      <h3>Spending by category</h3>
+      <div id="categories"></div>
+    </section>
+
+    <!-- List of all items -->
+    <section class="card">
+      <h3>History</h3>
+      <ul id="list"></ul>
+    </section>
+    </div>
+  </main>
+
+  <script src="app.js"></script>
+  <script src="installments.js"></script>
+  <script src="plan.js"></script>
+</body>
+</html>

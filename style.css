@@ -1,0 +1,319 @@
+/* ===== Colors (dark mode) =====
+   Change a color here and it changes everywhere. */
+:root {
+  color-scheme: dark; /* makes date pickers and dropdowns dark too */
+  --page: #121418;
+  --card: #1e2128;
+  --input: #2a2e37;
+  --line: #353a45;
+  --text: #e8eaf0;
+  --muted: #9298a6;
+  --blue: #5b7cfa;
+  --blue-dark: #4a6cf7;
+  --blue-text: #a9b9ff;
+  --soft-blue: #2b3350;
+  --soft-blue-hover: #35406a;
+  --green: #4cc38a;
+  --soft-green: #1f3a2d;
+  --red: #f0716c;
+  --soft-red: #3e2326;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: Arial, sans-serif;
+  background: var(--page);
+  color: var(--text);
+}
+
+main {
+  max-width: 600px;
+  margin: 0 auto;
+  padding: 16px;
+}
+
+h1 {
+  text-align: center;
+}
+
+/* Summary boxes */
+.summary {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+
+.box {
+  flex: 1;
+  background: var(--card);
+  border-radius: 10px;
+  padding: 12px;
+  text-align: center;
+}
+
+.box p,
+.box h2 {
+  margin: 4px 0;
+}
+
+.box h2 {
+  font-size: 1.2rem;
+}
+
+.income h2 {
+  color: var(--green);
+}
+
+.expense h2 {
+  color: var(--red);
+}
+
+/* Cards */
+.card {
+  background: var(--card);
+  border-radius: 10px;
+  padding: 16px;
+  margin-bottom: 16px;
+}
+
+.card h3 {
+  margin-top: 0;
+}
+
+/* Form */
+form {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+input,
+select,
+button {
+  padding: 10px;
+  font-size: 1rem;
+  border: 1px solid var(--line);
+  background: var(--input);
+  color: var(--text);
+  border-radius: 6px;
+}
+
+button {
+  background: var(--blue);
+  color: #fff;
+  border: none;
+  cursor: pointer;
+}
+
+button:hover {
+  background: var(--blue-dark);
+}
+
+/* Category bars */
+.cat-row {
+  margin-bottom: 10px;
+}
+
+.cat-label {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.9rem;
+}
+
+.bar {
+  height: 8px;
+  background: var(--line);
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.bar div {
+  height: 100%;
+  background: var(--red);
+}
+
+/* History list */
+ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+li {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--line);
+}
+
+li small {
+  color: var(--muted);
+}
+
+.plus {
+  color: var(--green);
+}
+
+.minus {
+  color: var(--red);
+}
+
+.delete {
+  background: none;
+  color: var(--muted);
+  padding: 4px 8px;
+  margin-left: 8px;
+}
+
+.delete:hover {
+  background: var(--soft-red);
+  color: var(--red);
+}
+
+.empty {
+  color: var(--muted);
+  text-align: center;
+}
+
+/* Tabs */
+.tabs {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 16px;
+}
+
+.tabs button {
+  flex: 1;
+  background: var(--card);
+  color: var(--text);
+}
+
+.tabs button.active {
+  background: var(--blue);
+  color: #fff;
+}
+
+.hidden {
+  display: none;
+}
+
+/* Payday page */
+#pay-amount,
+label {
+  display: block;
+  width: 100%;
+  margin-bottom: 10px;
+}
+
+label input {
+  display: block;
+  width: 100%;
+  margin-top: 4px;
+}
+
+#moved {
+  width: 100%;
+  margin-top: 10px;
+}
+
+.hint {
+  color: var(--muted);
+  font-size: 0.85rem;
+}
+
+.ok {
+  color: var(--green);
+}
+
+.warn {
+  color: var(--red);
+}
+
+.small-btn {
+  padding: 4px 10px;
+  font-size: 0.85rem;
+  margin-left: 4px;
+}
+
+.left-over {
+  font-weight: bold;
+  border-bottom: none;
+}
+
+.tabs button:hover {
+  background: var(--soft-blue);
+}
+
+.tabs button.active:hover {
+  background: var(--blue-dark);
+}
+
+/* Keep amount and buttons on one line */
+li > div:last-child {
+  white-space: nowrap;
+  margin-left: 8px;
+}
+
+/* Pay in 4 page */
+.check {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.check input {
+  display: inline;
+  width: auto;
+  margin: 0;
+}
+
+li.buy {
+  display: block;
+}
+
+.buy-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+}
+
+li.buy > .chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 8px 0 0;
+  white-space: normal;
+}
+
+.chip {
+  padding: 6px 10px;
+  font-size: 0.85rem;
+  background: var(--soft-blue);
+  color: var(--blue-text);
+}
+
+.chip:hover {
+  background: var(--soft-blue-hover);
+}
+
+.chip.paid {
+  background: var(--soft-green);
+  color: var(--green);
+  cursor: default;
+}
+
+.chip.late {
+  background: var(--soft-red);
+  color: var(--red);
+}
+
+/* Smaller tab text so 5 tabs fit on a phone */
+.tabs button {
+  padding: 10px 4px;
+  font-size: 0.9rem;
+}
