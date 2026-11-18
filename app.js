@@ -1,7 +1,7 @@
 // ---- 1. Load saved data ----
 // We keep every item in this list. Each item looks like:
 // { id, name, amount, type: "income" or "expense", category, date }
-let items = JSON.parse(localStorage.getItem("budget-items")) || [];
+let items = loadData("budget-items", []);
 
 // Grab the parts of the page we need
 const form = document.getElementById("form");
@@ -17,7 +17,7 @@ function money(number) {
 }
 
 function save() {
-  localStorage.setItem("budget-items", JSON.stringify(items));
+  saveData("budget-items", items);
 }
 
 // ---- 3. Add a new item ----

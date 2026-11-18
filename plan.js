@@ -5,11 +5,11 @@
 // Saved data looks like:
 // accounts: { id, name, balance }
 // bills:    { id, name, amount, often, accountId, due }
-let plan = JSON.parse(localStorage.getItem("budget-plan")) || {
+let plan = loadData("budget-plan", {
   accounts: [],
   bills: [],
   nextPayday: "",
-};
+});
 
 const PAYDAYS_A_YEAR = 26; // paid every 2 weeks = 26 times a year
 
@@ -31,7 +31,7 @@ const OFTEN_TEXT = {
 };
 
 function savePlan() {
-  localStorage.setItem("budget-plan", JSON.stringify(plan));
+  saveData("budget-plan", plan);
 }
 
 // Stop typed names from breaking the page
@@ -158,11 +158,12 @@ document.getElementById("account-form").addEventListener("submit", function (eve
 });
 
 function editBalance(account) {
-  const answer = prompt(`How much is in "${account.name}" now?`, account.balance);
-  if (answer === null || answer === "" || isNaN(Number(answer))) return;
-  account.balance = Number(answer);
-  savePlan();
-  showPlan();
+  askNumber(`How much is in "${account.name}" now?`, account.balance, function (answer) {
+    if (answer === "" || isNaN(Number(answer))) return;
+    account.balance = Number(answer);
+    savePlan();
+    showPlan();
+  });
 }
 
 function deleteAccount(account) {
@@ -174,15 +175,16 @@ function deleteAccount(account) {
       return buy.accountId === account.id;
     });
   if (used) {
-    alert("Some bills or Pay in 4 purchases use this account. Delete those first.");
+    showMessage("Some bills or Pay in 4 purchases use this account. Delete those first.");
     return;
   }
-  if (!confirm(`Delete "${account.name}"?`)) return;
-  plan.accounts = plan.accounts.filter(function (a) {
-    return a.id !== account.id;
+  askYesNo(`Delete "${account.name}"?`, function () {
+    plan.accounts = plan.accounts.filter(function (a) {
+      return a.id !== account.id;
+    });
+    savePlan();
+    showPlan();
   });
-  savePlan();
-  showPlan();
 }
 
 function showAccounts() {
@@ -230,7 +232,7 @@ function showAccounts() {
 document.getElementById("bill-form").addEventListener("submit", function (event) {
   event.preventDefault();
   if (plan.accounts.length === 0) {
-    alert("Please add a bank account first (Accounts tab).");
+    showMessage("Please add a bank account first (Accounts tab).");
     return;
   }
   plan.bills.push({
@@ -269,12 +271,13 @@ function payBill(bill) {
 }
 
 function deleteBill(bill) {
-  if (!confirm(`Delete "${bill.name}"?`)) return;
-  plan.bills = plan.bills.filter(function (b) {
-    return b.id !== bill.id;
+  askYesNo(`Delete "${bill.name}"?`, function () {
+    plan.bills = plan.bills.filter(function (b) {
+      return b.id !== bill.id;
+    });
+    savePlan();
+    showPlan();
   });
-  savePlan();
-  showPlan();
 }
 
 function showBills() {
@@ -373,7 +376,7 @@ function showSplit() {
 document.getElementById("moved").addEventListener("click", function () {
   const pay = Number(payInput.value);
   if (!pay) {
-    alert("Type your paycheck amount first.");
+    showMessage("Type your paycheck amount first.");
     return;
   }
 
@@ -397,7 +400,7 @@ document.getElementById("moved").addEventListener("click", function () {
   payInput.value = "";
   showEverything();
   showPlan();
-  alert("Done! Your accounts are updated. 🎉");
+  showMessage("Done! Your accounts are updated. 🎉");
 });
 
 // ---- Show all plan pages ----

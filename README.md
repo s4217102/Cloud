@@ -43,6 +43,7 @@ Your data is saved in your browser, so it is still there when you come back.
 
 - `index.html`: the page layout
 - `style.css`: the colors and look (dark mode colors are at the top)
+- `helpers.js`: saving data and the pop-up box
 - `app.js`: the tracker logic (adding, deleting, totals)
 - `plan.js`: the paycheck plan (accounts, bills, payday split)
 - `installments.js`: Pay in 4 purchases (Afterpay, PayPal)

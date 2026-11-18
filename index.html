@@ -166,6 +166,19 @@
     </div>
   </main>
 
+  <!-- Our own pop-up box (used for "Are you sure?" and messages) -->
+  <div class="dialog" id="dialog">
+    <div class="dialog-box">
+      <p id="dialog-text"></p>
+      <input type="number" id="dialog-input" step="0.01" class="hidden">
+      <div class="dialog-buttons">
+        <button id="dialog-cancel" class="secondary">Cancel</button>
+        <button id="dialog-ok">OK</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="helpers.js"></script>
   <script src="app.js"></script>
   <script src="installments.js"></script>
   <script src="plan.js"></script>

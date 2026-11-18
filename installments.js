@@ -3,10 +3,10 @@
 //
 // Saved data looks like:
 // { id, name, provider, total, count, first, accountId, paid: [true, false, ...] }
-let buys = JSON.parse(localStorage.getItem("budget-installments")) || [];
+let buys = loadData("budget-installments", []);
 
 function saveBuys() {
-  localStorage.setItem("budget-installments", JSON.stringify(buys));
+  saveData("budget-installments", buys);
 }
 
 // ---- The money maths ----
@@ -54,7 +54,7 @@ function shortDate(text) {
 document.getElementById("buy-form").addEventListener("submit", function (event) {
   event.preventDefault();
   if (plan.accounts.length === 0) {
-    alert("Please add a bank account first (Accounts tab).");
+    showMessage("Please add a bank account first (Accounts tab).");
     return;
   }
 
@@ -81,8 +81,12 @@ document.getElementById("buy-form").addEventListener("submit", function (event) 
 // ---- Pay one part: take it out of the account and add it to the tracker ----
 function payPart(buy, index) {
   const amount = paymentAmount(buy, index);
-  if (!confirm(`Mark ${money(amount)} for "${buy.name}" as paid?`)) return;
+  askYesNo(`Mark ${money(amount)} for "${buy.name}" as paid?`, function () {
+    markPartPaid(buy, index, amount);
+  });
+}
 
+function markPartPaid(buy, index, amount) {
   findAccount(buy.accountId).balance -= amount;
   buy.paid[index] = true;
 
@@ -103,12 +107,13 @@ function payPart(buy, index) {
 }
 
 function deleteBuy(buy) {
-  if (!confirm(`Delete "${buy.name}"?`)) return;
-  buys = buys.filter(function (b) {
-    return b.id !== buy.id;
+  askYesNo(`Delete "${buy.name}"?`, function () {
+    buys = buys.filter(function (b) {
+      return b.id !== buy.id;
+    });
+    saveBuys();
+    showPlan();
   });
-  saveBuys();
-  showPlan();
 }
 
 // ---- Show the Pay in 4 page ----
